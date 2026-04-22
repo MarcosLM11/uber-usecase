@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -15,11 +14,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Ride {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     @Column(nullable = false)
     private String riderId; //Who requested the ride
-    @Column(nullable = false)
     private String driverId; //Who accepted the ride (null until matched)
     @Column(nullable = false)
     private Double pickupLatitude;

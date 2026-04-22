@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Comparator;
 import java.util.List;
@@ -18,7 +19,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MatchingService {
     private final LocationServiceClient locationServiceClient;
-    private final KafkaTemplate<String, RideMatchEvent> kafkaTemplate;
+    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final ObjectMapper objectMapper;
     private static final String RIDE_MATCHED_TOPIC = "ride.matched";
     private static final Double DEFAULT_SEARCH_RADIUS_KM = 5.0;
 
@@ -52,7 +54,11 @@ public class MatchingService {
                 .distanceToPickupKm(assignedDriver.distance())
                 .build();
 
-        kafkaTemplate.send(RIDE_MATCHED_TOPIC,matchedEvent);
+        try {
+            kafkaTemplate.send(RIDE_MATCHED_TOPIC, objectMapper.writeValueAsString(matchedEvent));
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to serialize and publish RideMatchEvent", e);
+        }
         log.info("RideMatchedEvent published");
     }
 

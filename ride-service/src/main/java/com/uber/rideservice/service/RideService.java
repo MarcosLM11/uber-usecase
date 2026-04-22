@@ -1,5 +1,6 @@
 package com.uber.rideservice.service;
 
+import tools.jackson.databind.ObjectMapper;
 import com.uber.rideservice.dto.RideRequest;
 import com.uber.rideservice.dto.RideResponse;
 import com.uber.rideservice.event.RideRequestEvent;
@@ -19,7 +20,8 @@ import java.util.List;
 public class RideService {
 
     private final RideRepository repository;
-    private final KafkaTemplate<String, RideRequestEvent> kafkaTemplate;
+    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final ObjectMapper objectMapper;
     private static final String RIDE_REQUESTED_TOPIC = "ride.requested";
     private static final String EX_MESSAGE = "Ride not Found";
 
@@ -49,7 +51,11 @@ public class RideService {
                  .dropLongitude(rideSaved.getDropLongitude())
                  .dropAddress(rideSaved.getDropAddress()).build();
 
-        kafkaTemplate.send(RIDE_REQUESTED_TOPIC, event);
+        try {
+            kafkaTemplate.send(RIDE_REQUESTED_TOPIC, objectMapper.writeValueAsString(event));
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to serialize and publish RideRequestEvent", e);
+        }
         log.info("RideRequestEvent published to kafka for ride: {}", rideSaved.getId());
 
         rideSaved.setStatus(RideStatus.MATCHING); //Update Status to Matching

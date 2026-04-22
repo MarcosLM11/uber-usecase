@@ -46,7 +46,7 @@ public class LocationService {
     public List<NearByDriverResponse> findNearByDrivers(Double latitude, Double longitude, Double radius) {
         log.info("Finding drivers near lat: {}, long: {}, withing: {}km", latitude,longitude,radius);
 
-        var point = new Point(latitude,longitude);
+        var point = new Point(longitude,latitude);
         var distance = new Distance(radius, Metrics.KILOMETERS);
         var circle = new Circle(point,distance);
         var result = redisTemplate.opsForGeo().radius(
